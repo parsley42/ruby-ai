@@ -1,0 +1,10 @@
+{
+  "model": "text-davinci-003",
+  "prompt": "Human: Write some ruby code to split a string in to words and punctuation marks, returning the index of each element.\n\nAI:\n\nindex_array = []\nstring = \"This is a string!\"\n\nstring.split(/[\\s,!?.]+/).each_with_index do |word, index| \n  index_array << [word, index]\nend\n\nputs index_array # [['This', 0], ['is', 1], ['a', 2], ['string', 3], ['!', 4]]\nHuman: Make it work with a wider selection of punctuation marks - like, all of them?\n\n\nindex_array = []\nstring = \"This is a string!\"\n\nstring.split(/[[:punct:]]+/).each_with_index do |word, index| \n  index_array << [word, index]\nend\n\nputs index_array # [['This', 0], ['is', 1], ['a', 2], ['string', 3], ['!', 4]]",
+  "temperature": 0.9,
+  "max_tokens": 2048,
+  "top_p": 1,
+  "frequency_penalty": 0,
+  "presence_penalty": 0.6,
+  "stop": [" Human:", " AI:"]
+}
