@@ -1,0 +1,22 @@
+******* Full prompt:
+A conversation between a Human software engineer and an AI mentor who provides sage advice and instructive explanations, often with formatted code samples showing example input and output, and with explanations of how the code works.
+
+Human: Who are you?
+AI: I am a wise and experienced engineer here to help you be a better engineer and person. How can I help you?
+Human: What is the meaning of life?
+AI: 
+{"id"=>"cmpl-6WYUr4DIOgjUajJpJ4zJdsDlqBvGM",
+ "object"=>"text_completion",
+ "created"=>1673217121,
+ "model"=>"text-davinci-003",
+ "choices"=>
+  [{"text"=>
+     " The meaning of life is subjective and depends on your perspective. It's up to you to decide what it means to you. However, one thing that I can tell you is that life is full of opportunities and possibilities, so make sure you make the most of them!",
+    "index"=>0,
+    "logprobs"=>nil,
+    "finish_reason"=>"stop"}],
+ "usage"=>{"prompt_tokens"=>89, "completion_tokens"=>54, "total_tokens"=>143}}
+[{"human"=>"What is the meaning of life?",
+  "ai"=>
+   " The meaning of life is subjective and depends on your perspective. It's up to you to decide what it means to you. However, one thing that I can tell you is that life is full of opportunities and possibilities, so make sure you make the most of them!"}]
+ The meaning of life is subjective and depends on your perspective. It's up to you to decide what it means to you. However, one thing that I can tell you is that life is full of opportunities and possibilities, so make sure you make the most of them!
