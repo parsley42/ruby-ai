@@ -2,18 +2,22 @@
 
 require "ruby/openai"
 
+def count_tokens(str)
+    count = str.scan(/\w+|[^\s\w]+/s).length
+    count += str.count("\n")
+end
+
 class AIChat
     Preamble = <<-'EOF'
-A conversation between a Human software engineer and an AI mentor who provides sage advice and instructive explanations, often with formatted code samples showing example input and output, and with explanations of how the code works.
+A conversation between a Human software engineer and an AI that serves as life coach and mentor. When providing help with code, the AI provides formatted code samples, example input and output, and a clear explanation of how the code works. When providing advice on life decisions and dealing with other people, the AI provides help that is tailored to a nerdy engineer with generally poor social skills.
 
-Human: Who are you?
-AI: I am a wise and experienced engineer here to help you be a better engineer and person. How can I help you?
 EOF
 
     def initialize
         @model = "text-davinci-003"
         @temperature = 0.84      # creativity
         @max_tokens = 2212
+        @max_input = 3997 - @max_tokens
         @responses = 1           # n
         @word_probability = 0.7  # top_p
         @frequency_penalty = 0.2
@@ -25,16 +29,42 @@ EOF
             # config.organization_id = ENV.fetch('OPENAI_ORGANIZATION_ID') # Optional.
         end
         @client = OpenAI::Client.new
-        @exchanges = []
+        @exchanges = [{
+            "human" => "Who are you?",
+            "ai" => "Hi, I'm your AI mentor. I'm here to provide advice and instruction on coding. How can I help you?"
+        }]
+    end
+
+    def build_prompt(input)
+        prompt = String.new
+        final = nil
+        truncated = false
+        current_length = count_tokens(Preamble)
+        if input.length > 0
+            final = "Human: #{input}\nAI:"
+            current_length += count_tokens(final)
+        end
+        @exchanges.reverse_each do |exchange|
+            exchange = "Human: #{exchange["human"]}\nAI: #{exchange["ai"]}\n"
+            size = count_tokens(exchange)
+            if current_length + size > @max_input
+                truncated = true
+                break
+            end
+            current_length += size
+            prompt = exchange + prompt
+        end
+        prompt = Preamble + prompt
+        if final
+            prompt += final
+        end
+        return prompt, current_length, truncated
     end
 
     def query(input)
-        prompt = Preamble
-        @exchanges.each do |exchange|
-            prompt += "Human: #{exchange["human"]}\nAI: #{exchange["ai"]}\n"
-        end
-        prompt += "Human: #{input}\nAI: "
-        puts("******* Full prompt:\n#{prompt}\n")
+        prompt, count, truncated = build_prompt(input)
+
+        # puts("******* Full prompt (length: #{count}):\n#{prompt}\n")
         response = @client.completions(parameters: {
             model: @model,
             prompt: prompt,
@@ -47,53 +77,25 @@ EOF
             # num_beams: @num_beams,
             stop: @stop
         })
-        pp(response)
-        @exchanges << {
-            "human" => input,
-            "ai" => response["choices"][0]["text"]
-        }
-        pp(@exchanges)
-        return response["choices"][0]["text"]
+        # pp(response)
+        aitext = response["choices"][0]["text"].lstrip
+        if input.length > 0
+            @exchanges << {
+                "human" => input,
+                "ai" => aitext
+            }
+        end
+        # pp(@exchanges)
+        return aitext, count, truncated
     end
-end
-
-def chat(client, prompt)
-    response = client.completions(
-        parameters: {
-            model: "text-davinci-003",
-            prompt: prompt,
-            max_tokens: 2048,
-            n: 1,
-            top_p: 1,
-            frequency_penalty: 1,
-            presence_penalty: 1,
-            temperature: 0.7,
-        }
-    )
-    return response["choices"][0]["text"]
 end
 
 chat = AIChat.new
 
-response = chat.query("What is the meaning of life?")
-puts(response)
-exit
-
-print "Query: "
-user_input = gets.chomp
-
-chat.query(user_input)
-exit
-
-current = ""
-
 while true
-    print "Query: "
+    print "Query ('quit' to finish): "
     user_input = gets.chomp
     exit if user_input == "quit"
-    current += user_input + "\n"
-    puts("************** Full prompt:\n#{current}\n**************\n")
-    response = chat(client, current)
-    puts "Bot: #{response}"
-    current += response + "\n\n"
+    response, count, truncated = chat.query(user_input)
+    puts "Response (prompt size #{count}, truncated: #{truncated}):\n#{response}\n\n"
 end
