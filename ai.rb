@@ -97,5 +97,5 @@ while true
     user_input = gets.chomp
     exit if user_input == "quit"
     response, count, truncated = chat.query(user_input)
-    puts "Response (prompt size #{count}, truncated: #{truncated}):\n#{response}\n\n"
+    puts "\nResponse (prompt size #{count}, truncated: #{truncated}):\n#{response}\n\n"
 end
